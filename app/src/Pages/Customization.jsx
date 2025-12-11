@@ -10,11 +10,12 @@ import PriceRangeMob from "../components/Shop/PriceRangeMob";
 import { useSearchParams } from "next/navigation";
 import CustomPriceRange from "../components/Customizaton/CustomPriceRange";
 import CustomPriceRangeMob from "../components/Customizaton/CustomPriceRangeMob";
-import { useCart } from "../context/CartContext";
+// import { useCart } from "../context/CartContext";
 import axios from "../Utils/axios";
 import { Loader } from "../components/Loader";
 import CustomSeo from "../components/CustomSeo";
 import Link from "next/link";
+import { useCart } from "../Context/CartContext";
 
 export default function Customization() {
   const [grid, setGrid] = useState(3);
