@@ -33,7 +33,7 @@ export async function generateMetadata() {
 // 🔹 Important for client hooks
 
 import Homes from "./src/Pages/Homes";
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 export default function Page() {
   return (
   // <Suspense fallback={<div>Loading Homes...</div>}>

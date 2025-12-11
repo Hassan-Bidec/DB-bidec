@@ -35,7 +35,7 @@ export async function generateMetadata() {
 import React, { Suspense } from "react";
 import Shop from "../src/Pages/Shop";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>

@@ -30,15 +30,15 @@ export async function generateMetadata() {
 // 🟩 Load Customization Component
 
 
-import React, { Suspense } from "react";
+// import React, { Suspense } from "react";
 import Customization from "../src/Pages/Customization ";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    // <Suspense fallback={<div>Loading...</div>}>
       
       <Customization   />
-     </Suspense>
+    //  </Suspense>
   );
 }

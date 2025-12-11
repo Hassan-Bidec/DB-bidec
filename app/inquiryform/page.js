@@ -31,7 +31,7 @@ export async function generateMetadata() {
 // 🟩 Page Component
 import { Suspense } from "react";
 import InquiryFormClient from "../src/Pages/InquiryForm";
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading Inquiry Form...</div>}>
