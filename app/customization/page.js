@@ -1,3 +1,5 @@
+import Customization from "../src/Pages/Customization";
+
 // 🟩 Dynamic Metadata Function for Customization Page
 export async function generateMetadata() {
   const res = await fetch(
@@ -31,14 +33,15 @@ export async function generateMetadata() {
 
 
 // import React, { Suspense } from "react";
-import Customization from "../src/Pages/Customization ";
+// import Customization from "../src/Pages/Customization ";
 
 // export const dynamic = "force-dynamic";
 export default function Page() {
   return (
     // <Suspense fallback={<div>Loading...</div>}>
       
-      <Customization   />
+      // <Customization />
+<Customization/>
     //  </Suspense>
   );
 }
