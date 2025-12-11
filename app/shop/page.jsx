@@ -28,7 +28,7 @@ export async function generateMetadata() {
   };
 }
 
-// 🟩 Load Shop Component
+
 
 
 
