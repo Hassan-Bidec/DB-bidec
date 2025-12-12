@@ -1,6 +1,6 @@
 "use client";
 import React, {  useEffect, useRef, useState } from 'react';
-import {  usePathname, useRouter } from 'next/navigation';
+import {  useParams, useRouter, usePathname } from 'next/navigation';
 import axios from '../../src/Utils/axios';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -156,11 +156,12 @@ const [productUrl, setProductUrl] = useState('');
 // Ensure the URL ends with a slash
 
 
+const pathname = usePathname();   // <-- ADD THIS
+
 let path = pathname;
 if (!path.endsWith('/')) {
     path += '/';
 }
-
 // const { slug } = useParams();
 
 // Extract product slug/id
@@ -456,7 +457,7 @@ const inquiryMessage = encodeURIComponent(
     /* CASE 2: Array but empty */
     <div className="w-full h-1/4 py-1">
       <Image
-        // src={`${Image_Url}defaultImage.svg`}
+        src={`${Image_Url}defaultImage.svg`}
         alt="Default Product Image"
         width={500}
         height={500}
