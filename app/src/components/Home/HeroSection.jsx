@@ -33,7 +33,7 @@ function HeroSection() {
             style={{
                 backgroundImage: `url(${Image_Url}${visibleItems})`,
                 backgroundPosition: 'center',
-                backgroundSize: 'cover', // or 'cover' depending on your design
+                backgroundSize: 'cover', 
                 backgroundRepeat: 'no-repeat',
             }}
         >

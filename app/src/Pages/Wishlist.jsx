@@ -27,10 +27,12 @@ function Wishlist() {
             try {
                 const response = await axios.protected.get('user/wishlist/get');
                 setWishList(response.data.data);
+               console.log("response wishlist" , response.data.data);
             } catch (error) {
                 console.log(error);
             }
         };
+        
         fetchData();
     }, []);
 
@@ -81,7 +83,7 @@ function Wishlist() {
 
 
     const handleAddCart = (product) => {
-        console.log(product);
+        console.log("product" , product);
 
         const product_id = product.id;
         const product_name = product.name;

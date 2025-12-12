@@ -21,8 +21,8 @@ function CustomHeroSection({
     const backgroundImageUrl = heroImage
         ? `${Assets_Url}${heroImage}`
         : bgImage
-          ? `${Image_Url}${bgImage}`
-          : `${Assets_Url}CustomHeroAssets/CustomHeroBgImg.svg`;
+            ? `${Image_Url}${bgImage}`
+            : `${Assets_Url}CustomHeroAssets/CustomHeroBgImg.svg`;
 
     console.log("Background Image URL:", backgroundImageUrl);
 
@@ -33,25 +33,27 @@ function CustomHeroSection({
     );
 
     return (
-           <div
-  className={`w-full  flex items-center text-black relative 
+        <div
+            className={`w-full  flex items-center text-black relative 
     h-[90vh] overflow-hidden 
     ${custom == "customization" ? "2xl:h-[1100px]" : "2xl:h-[790px]"}`}
-  style={{
-    backgroundImage: `url('${backgroundImageUrl}')`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right top 90px",   // 👉 IMAGE RIGHT SIDE
-    backgroundSize: "100% ", 
-  }}
-            // style={{
-            //  background: `url('${backgroundImageUrl}')`,
-            //   backgroundSize: 'auto',
-            //   backgroundRepeat: 'no-repeat',
-            //   // backgroundRepeat: 'no-repeat',
-            //   // backgroundPosition: 'center',
-            //   // width: '100%',
-            //   // height: '29rem',
-            // }}
+
+            style={{
+                backgroundImage: `url('${backgroundImageUrl}')`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right top 90px",
+                backgroundSize: "100% ",
+
+            }}
+        // style={{
+        //  background: `url('${backgroundImageUrl}')`,
+        //   backgroundSize: 'auto',
+        //   backgroundRepeat: 'no-repeat',
+        //   // backgroundRepeat: 'no-repeat',
+        //   // backgroundPosition: 'center',
+        //   // width: '100%',
+        //   // height: '29rem',
+        // }}
         >
             {/* Left text content */}
             <div className="md:w-[40%] md:pl-20 pl-10">

@@ -184,7 +184,7 @@ const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     };
 
   return (
-   <div className="px-5">
+   <div >
             <CustomSeo id={3} />
             <CustomHeroSection heading='Build Your Perfect Match' path='Customization ' custom="customization" bgImage="HomeAssets/HeroSecton/Banner3.png" />
             <div className="md:py-20 py-10 lg:px-10 px-0 flex">

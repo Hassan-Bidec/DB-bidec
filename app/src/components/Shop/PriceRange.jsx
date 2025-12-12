@@ -5,7 +5,7 @@ import { FaCheck } from 'react-icons/fa';
 import { CiSearch } from 'react-icons/ci';
 import axios from '../../Utils/axios';
 import { FiCornerDownRight } from 'react-icons/fi';
-import { useSearchParams } from 'next/navigation'; // Next.js hook
+import { useSearchParams } from 'next/navigation';
 
 const PriceRange = ({ onFilter, isCategoryShown }) => {
     const min = 0;
@@ -14,21 +14,32 @@ const PriceRange = ({ onFilter, isCategoryShown }) => {
     const [priceTo, setPriceTo] = useState(max);
     const [selected, setSelected] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    const [category_Id, setCategory_Id] = useState();
+       const [category_Id, setCategory_Id] = useState();
     const [categories, setCategories] = useState([]);
     const [filteredCategories, setFilteredCategories] = useState([]);
 
-    // Get query params from URL (like useParams in react-router-dom)
     const searchParams = useSearchParams();
     const id = searchParams?.get('id');
+
+    // Sorting Function
+    const sortCategories = (data, sortType) => {
+        return [...data].sort((a, b) => {
+            if (sortType === 1) return a.name.localeCompare(b.name); // A → Z
+            if (sortType === 2) return b.name.localeCompare(a.name); // Z → A
+            return 0;
+        });
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await axios.public.get('product/category');
                 const categoryData = response.data.data;
-                setCategories(categoryData);
-                setFilteredCategories(categoryData);
+
+                const sorted = sortCategories(categoryData, selected);
+
+                setCategories(sorted);
+                setFilteredCategories(sorted);
             } catch (error) {
                 console.log(error);
             }
@@ -48,24 +59,43 @@ const PriceRange = ({ onFilter, isCategoryShown }) => {
         onFilter({ price_from: priceFrom, price_to: value, selected, searchTerm, category_Id });
     };
 
+    // Sort By Change
     const handleChange = (value) => {
         setSelected(value);
+
+        const sorted = sortCategories(filteredCategories, value);
+        setFilteredCategories(sorted);
+
         onFilter({ price_from: priceFrom, price_to: priceTo, selected: value, searchTerm, category_Id });
     };
 
+    // Search + Sorting Apply
     const handleSearch = (e) => {
         const value = e.target.value;
         setSearchTerm(value);
-        const filtered = categories.filter((category) =>
+
+        let filtered = categories.filter((category) =>
             category.name.toLowerCase().includes(value.toLowerCase())
         );
+
+        filtered = sortCategories(filtered, selected);
+
         setFilteredCategories(filtered);
-        onFilter({ price_from: priceFrom, price_to: priceTo, selected, searchTerm: value, category_Id });
+
+        onFilter({
+            price_from: priceFrom,
+            price_to: priceTo,
+            selected,
+            searchTerm: value,
+            category_Id
+        });
     };
 
     const handleFilterCategory = (cate) => {
         setCategory_Id(cate.id);
-        onFilter({ price_from: priceFrom, price_to: priceTo, selected, searchTerm, category_Id: cate.id });
+        onFilter({
+            price_from: priceFrom, price_to: priceTo, selected, searchTerm, category_Id: cate.id
+        });
     };
 
     return (
@@ -163,7 +193,7 @@ const PriceRange = ({ onFilter, isCategoryShown }) => {
                                             <h2 className="hover:text-gray-400 cursor-pointer py-1" onClick={() => handleFilterCategory(cate)}>
                                                 {cate.name}
                                             </h2>
-                                            {cate.subCategories.length !== 0 && cate.subCategories.map((cat, index) => (
+                                            {cate.subCategories.length !== 0 && cate.subCategories.map((cat) => (
                                                 <h2 key={cat.id} className="hover:text-gray-400 cursor-pointer flex flex-row gap-2 items-center py-1" onClick={() => handleFilterCategory(cat)}>
                                                     <FiCornerDownRight />{cat.name}
                                                 </h2>

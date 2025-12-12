@@ -631,7 +631,7 @@ function Header() {
                     </Link>
                 </ul>
             </div>
-   <div className="fixed bottom-10 right-10 flex flex-col gap-4 z-50">
+   <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
 
   {/* WhatsApp Button */}
   <a
@@ -639,7 +639,7 @@ function Header() {
     target="_blank"
     className="w-12 h-12 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 transition"
   >
-    <BsWhatsapp className="text-white text-3xl" />
+    <BsWhatsapp className="text-white text-[20px]  " />
   </a>
 
   {/* Email Button */}
@@ -647,7 +647,7 @@ function Header() {
     href="mailto:info@example.com"
     className="w-12 h-12 rounded-full bg-[#1E90FF] flex items-center justify-center shadow-lg hover:scale-110 transition"
   >
-    <MdEmail className="text-white text-3xl" />
+    <MdEmail className="text-white text-[25px]" />
   </a>
 
 </div>

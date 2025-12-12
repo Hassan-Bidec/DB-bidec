@@ -9,6 +9,19 @@
     font-family: 'Lalezar';
     
 }
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-pane {
+  z-index: 0 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 0 !important;
+}
+
 
 :root {
   --background: #ffffff;

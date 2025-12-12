@@ -5,26 +5,23 @@ import PriceRange from "../components/Shop/PriceRange";
 import { Assets_Url, Image_Not_Found, Image_Url } from "../const";
 import { RiFilter3Line } from "react-icons/ri";
 import PriceRangeMob from "../components/Shop/PriceRangeMob";
-// import {  useParams, useLocation } from "react-router-dom";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-
 import axios from "../Utils/axios";
 import { Loader } from "../components/Loader";
 import { useCart } from "../Context/CartContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import  CartModal  from "../components/cart/CartModal";
+import CartModal from "../components/cart/CartModal";
 import { FiX } from "react-icons/fi";
 import CustomSeo from "../components/CustomSeo";
 
 function Shop() {
-const params = useParams();
-const category = params.category;
+  const params = useParams();
+  const category = params.category;
 
-const searchParams = useSearchParams();
-const searchTermFromURL = searchParams.get("q");
-
+  const searchParams = useSearchParams();
+  const searchTermFromURL = searchParams.get("q");
 
   const [grid, setGrid] = useState(3);
   const [loading, setLoading] = useState(false);
@@ -43,7 +40,6 @@ const searchTermFromURL = searchParams.get("q");
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(true);
 
-  // ✅ NEW STATES for quantity popup
   const [showQtyModal, setShowQtyModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -63,52 +59,68 @@ const searchTermFromURL = searchParams.get("q");
     else setGrid(3);
   };
 
-  const fetchData = async () => {
-  setLoading(true);
-
-  try {
-    const response = await axios.public.get("search/product", {
-      params: {
-        price_from: filter.price_from,
-        price_to: filter.price_to,
-        sort_by: filter.sort_by,
-        category_id: filter.category_Id,
-        name: searchTerm,
-        search: searchTerm ? true : false,
-      },
+  // ⭐ SORTING LOGIC (kept same)
+  const sortProducts = (data, sortType) => {
+    return [...data].sort((a, b) => {
+      if (sortType === 1) return a.name.localeCompare(b.name);
+      if (sortType === 2) return b.name.localeCompare(a.name);
+      return 0;
     });
+  };
 
-    console.log("response", response);
+  // ⭐⭐⭐ UPDATED fetchData WITH SORTING ⭐⭐⭐
+  const fetchData = async () => {
+    setLoading(true);
 
-    
-    if (search === true) {
-     
-      setFilteredProduct(response.data?.data.is_customizeable);
-    } else {
-      
-      setFilteredProduct(response.data?.data);
+    try {
+      const response = await axios.public.get("search/product", {
+        params: {
+          price_from: filter.price_from,
+          price_to: filter.price_to,
+          sort_by: filter.sort_by,
+          category_id: filter.category_Id,
+          name: searchTerm,
+          search: searchTerm ? true : false,
+        },
+      });
+
+      let data = response.data?.data || [];
+
+      // ❌ OLD BUG FIXED: "search" undefined tha
+      // ❌ API ka structure handle nahi ho raha tha
+      if (Array.isArray(data)) {
+        data = data;
+      } else if (data?.is_customizeable) {
+        data = data.is_customizeable;
+      }
+
+      // ⭐ FINAL SORTING APPLY
+      const sorted = sortProducts(data, filter.sort_by);
+
+      setFilteredProduct(sorted);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching products:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-useEffect(() => {
-  setSearchTerm(searchTermFromURL || "");
-}, [searchParams.toString()]);
+  // Syncing URL q parameter
+  useEffect(() => {
+    setSearchTerm(searchTermFromURL || "");
+  }, [searchParams.toString()]);
 
   useEffect(() => {
-    setFilter((prev) => ({
-      ...prev,
-      category_Id: category || undefined,
-    }));
+    setFilter((prev) => ({ ...prev, category_Id: category || undefined }));
   }, [category]);
 
   useEffect(() => {
-    if (searchTerm || filter.price_from > 0 || filter.price_to > 0 || filter.category_Id) {
+    if (
+      searchTerm ||
+      filter.price_from > 0 ||
+      filter.price_to > 0 ||
+      filter.category_Id
+    ) {
       const delay = setTimeout(() => fetchData(), 300);
       return () => clearTimeout(delay);
     }
@@ -139,29 +151,19 @@ useEffect(() => {
     setVisibleProducts((prev) => prev + 12);
   };
 
-// ...existing code...
-
-  // 🟢 When user clicks "ADD TO CART"
   const handleAddCartClick = (product) => {
     setSelectedProduct(product);
     setQuantity(1);
     setShowQtyModal(true);
   };
 
-  // 🟢 When user confirms in modal (single consolidated implementation)
   const confirmAddToCart = () => {
     if (!selectedProduct) return;
     const product = selectedProduct;
-
-    // Guard: ensure variant exists
     const variant = product.product_variants?.[0];
-    if (!variant) {
-      console.warn("confirmAddToCart: product has no variants", product);
-      return;
-    }
+    if (!variant) return;
 
-    // Defensive reads with fallbacks
-    const pack_size = Number(variant.pack_size ?? variant.packSize ?? 1);
+    const pack_size = Number(variant.pack_size ?? 1);
     const product_quantity = Number(quantity ?? 1);
     const total_pieces = pack_size * product_quantity;
     const price_per_piece = Number(variant.price_per_piece ?? variant.price ?? 0);
@@ -185,33 +187,58 @@ useEffect(() => {
     setShowQtyModal(false);
   };
 
-// ...existing code...    
   return (
     <div className="py-15 ">
+      {/* ------ UI Same ------ */}
       <CustomSeo id={1} />
       <ToastContainer autoClose={500} />
-      <CustomHeroSection heading="Shop All" path="Shop " bgImage="CustomHeroAssets/shopbanner.png" />
+      <CustomHeroSection
+        heading="Shop All"
+        path="Shop "
+        bgImage="CustomHeroAssets/shopbanner.png"
+      />
 
-      <div className="  lg:px-10 px-0 flex ">
-        <section className="hidden lg:flex flex-col p-5  text-white lg:w-1/5">
+
+
+
+
+
+
+
+
+
+
+      
+
+      <div className="lg:px-10 px-0 flex ">
+        <section className="hidden lg:flex flex-col p-5 text-white lg:w-1/5">
           <PriceRange onFilter={handleFilter} isCategoryShown={true} />
         </section>
 
         <div>
-          <PriceRangeMob onFilter={handleFilter} isFilter={isFilter} setIsFilter={setIsFilter} isCategoryShown={true} />
+          <PriceRangeMob
+            onFilter={handleFilter}
+            isFilter={isFilter}
+            setIsFilter={setIsFilter}
+            isCategoryShown={true}
+          />
         </div>
 
         <section className="flex p-5 lg:w-4/5 w-full">
           <div className="py-4 w-full flex flex-col text-white rounded-lg">
             <div className="flex justify-between">
               <h3 className="text-4xl font-bazaar">
-                {filter.category_Id ? filteredProduct[0]?.category?.name : "Shop All"}
+                {filter.category_Id
+                  ? filteredProduct[0]?.category?.name
+                  : "Shop All"}
               </h3>
+
               <button onClick={() => setIsFilter(true)}>
                 <RiFilter3Line className="lg:hidden block text-4xl rounded-full p-2 bg-[#1E7773]" />
               </button>
             </div>
 
+            {/* LOADING / NO PRODUCTS / PRODUCTS LIST UI SAME */}
             {loading ? (
               <div className="flex justify-center py-10">
                 <Loader />
@@ -236,7 +263,8 @@ useEffect(() => {
                   {filteredProduct.slice(0, visibleProducts).map((product, index) => (
                     <div key={index} className="flex justify-center">
                       <div className="w-full xl:p-4 p-2 border border-[#1E7773] bg-gradient-to-l from-[#403E4A] to-[#32303E] rounded-2xl group">
-                        <Link href={product.is_customizeable == true ? `/customization/${product.slug}` : `/product/${product.slug}`}>
+
+                        <Link href={product.is_customizeable ? `/customization/${product.slug}` : `/product/${product.slug}`}>
                           <div className="relative p-5 flex justify-center items-center">
                             <img
                               className="w-full rounded-xl object-cover"
@@ -253,7 +281,7 @@ useEffect(() => {
 
                         <h4 className="font-semibold xl:text-lg">{product.name}</h4>
                         <p className="text-md py-3 font-semibold">
-                          {product.product_variants && product.product_variants.length > 0 ? (
+                          {product.product_variants?.length > 0 ? (
                             <>
                               Rs {product.product_variants[0].price} - Rs{" "}
                               {product.product_variants[product.product_variants.length - 1].price}
@@ -271,9 +299,10 @@ useEffect(() => {
                           >
                             ADD TO CART
                           </button>
+
                           <Link
                             className="p-2 border border-[#1E7773] text-center w-full font-bazaar rounded-lg"
-                            href={product.is_customizeable == true ? `/customization/${product.slug}` : `/product/${product.slug}`}
+                            href={product.is_customizeable ? `/customization/${product.slug}` : `/product/${product.slug}`}
                           >
                             BUY NOW
                           </Link>
@@ -302,7 +331,7 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* ✅ Quantity Popup with - / + */}
+        {/* Quantity Modal */}
         {showQtyModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg w-[300px] text-center">
@@ -310,14 +339,16 @@ useEffect(() => {
                 Select Quantity
               </h3>
 
-              <div className="flex items-center justify-center   space-x-6 mb-6">
+              <div className="flex items-center justify-center space-x-6 mb-6">
                 <button
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   className="w-10 h-10 rounded-full bg-gray-200 cursor-pointer text-gray-800 text-2xl font-bold flex items-center justify-center hover:bg-gray-300 transition"
                 >
                   -
                 </button>
-                <span className="text-xl text-gray-900 font-semibold">{quantity}</span>
+                <span className="text-xl text-gray-900 font-semibold">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => setQuantity((prev) => prev + 1)}
                   className="w-10 h-10 rounded-full bg-gray-200 cursor-pointer text-gray-800 text-2xl font-bold flex items-center justify-center hover:bg-gray-300 transition"
@@ -338,24 +369,30 @@ useEffect(() => {
                   className="flex-1 bg-[#1E7773] cursor-pointer hover:bg-[#155e5b] text-white font-semibold py-2 rounded-lg transition"
                 >
                   Add to Cart
-                </button> 
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ✅ Cart Modal */}
+        {/* Cart Modal */}
         {isCartModalOpen && (
           <div
-            className="fixed inset-0 flex items-center justify-center   z-50"
+            className="fixed inset-0 flex items-center justify-center z-50"
             onClick={() => setIsCartModalOpen(false)}
           >
             <div className="fixed md:top-32 md:right-4 bg-white shadow-lg p-4 rounded-lg z-50 w-[300px]">
               <div className="flex justify-between">
                 <h4 className="text-md font-bold text-black">Added to Cart</h4>
-                <FiX size={24} className="text-black" onClick={() => setIsCartModalOpen(false)} />
+                <FiX
+                  size={24}
+                  className="text-black"
+                  onClick={() => setIsCartModalOpen(false)}
+                />
               </div>
+
               <CartModal />
+
               <div className="flex gap-2 mt-2">
                 <Link
                   href="/shop/"

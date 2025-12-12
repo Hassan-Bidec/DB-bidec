@@ -1,5 +1,7 @@
 "use client";
 import ReactDOM from "react-dom";
+import "leaflet/dist/leaflet.css";
+import { MapContainer, TileLayer } from "react-leaflet";
 import React, { useEffect, useRef, useState } from "react";
 import Hamburger from "../components/Hamburger";
 import { PiCaretDownThin } from "react-icons/pi";
@@ -50,18 +52,29 @@ function Checkout() {
     const [special_instruction, setSpecialInstructions] = useState("");
     const [asGuest, setAsGuest] = useState(1);
     const [isInvoice, setIsInvoice] = useState(false);
-    const [invoicedetails, setInvoicedetails] = useState([]);
-    const navigate = useRouter();
-    // const [isFlipped, setIsFlipped] = useState(false);
+    const [errors, setErrors] = useState({});
     const searchInputRef = useRef(null);
     const canvasRef = useRef();
     const confettiRef = useRef();
+
+    const requiredFields = {
+        first_name: 'First Name',
+        last_name: 'Last Name',
+        mobile_no: 'Mobile Number',
+        email: 'Email',
+        billing_address: 'Address',
+        selectedAreaId: 'Area'
+    };
 
     // Blur event handler for individual field validation
     const handleBlur = (e) => {
         // const { name, value } = e.target;
         // validateField(name, value);
     };
+
+      useEffect(() => {
+   console.log("Cart Items:", cartItems);
+}, [cartItems]);
     // Calculate the subtotal of the cart
     const calculateSubtotal = () => {
         return cartItems.reduce((total, item) => {
@@ -105,209 +118,218 @@ function Checkout() {
         handleCheckOut();
     }
     const handleCheckOut = async () => {
-        const userData = JSON.parse(localStorage.getItem("user_data"));
-        const userId = userData ? userData.user_id : null;
+    const userData = JSON.parse(localStorage.getItem("user_data"));
+    const userId = userData ? userData.user_id : null;
 
-        // Validation
-        if (!cartItems || cartItems.length === 0) {
-            toast.error('Please add an item to the cart');
-        }
-        if (
-            !first_name ||
-            !last_name ||
-            // !email ||
-            !mobile_no ||
-            !billing_address ||
-            !selectedAreaId
-        ) {
-            toast.error("Please fill in all required fields.");
-            return; // Prevent submission if fields are empty
-        }
+    // Validation
+    const emptyFields = [];
+    if (!first_name) emptyFields.push('first_name');
+    if (!last_name) emptyFields.push('last_name');
+    if (!mobile_no) emptyFields.push('mobile_no');
+    if (!email) emptyFields.push('email');
+    if (!billing_address) emptyFields.push('billing_address');
+    if (!selectedAreaId) emptyFields.push('selectedAreaId');
 
-        // Validate mobile number (min 7 digits, max 15 digits)
-        if (!/^\d{7,15}$/.test(mobile_no)) {
-            toast.error("Please enter a valid mobile number (7 to 15 digits).");
-            return; // Prevent submission if the mobile number is invalid
-        }
-        const formData = new FormData(); // Create FormData object to hold all the order details and images
-
-        // Append all other order details to formData
-        formData.append("order_date", formattedDate);
-        formData.append("first_name", first_name);
-        formData.append("last_name", last_name);
-        formData.append("email", email);
-        formData.append("mobile_no", mobile_no);
-        formData.append("sub_total", subtotal);
-        formData.append("area_id", selectedAreaId);
-        formData.append("grand_total", total);
-        formData.append("billing_address", billing_address);
-        formData.append("special_instruction", special_instruction);
-        formData.append("continue_as_guest", user ? 0 : 1);
-        formData.append("user_id", user ? userId : null);
-
-        // setIsInvoice(true)
-        // Add each cart item individually
-        cartItems.forEach((item, index) => {
-            if (item.bundle_status == false) {
-                const matchedOption = item.product_options?.find(
-                    (option) =>
-                        option.size === item.product_size &&
-                        option.option === item.product_color
-                );
-
-                // Append individual fields for each item in order_detail
-                formData.append(
-                    `order_detail[${index}][product_id]`,
-                    item.product_id
-                );
-                formData.append(
-                    `order_detail[${index}][quantity]`,
-                    item.product_quantity
-                );
-                formData.append(
-                    `order_detail[${index}][pack_size]`,
-                    item.pack_size
-                );
-                formData.append(
-                    `order_detail[${index}][total_pieces]`,
-                    item.total_pieces
-                );
-                formData.append(
-                    `order_detail[${index}][product_sub_total]`,
-                    item.product_total
-                );
-                formData.append(
-                    `order_detail[${index}][_is_customize]`,
-                    item.logo ? 1 : 0
-                );
-
-                // If the item has a product option, append the product_option_id
-                if (matchedOption) {
-                    formData.append(
-                        `order_detail[${index}][product_option_id]`,
-                        matchedOption.id
-                    );
-                }
-
-                // if(item.customizeDetail) {
-                formData.append(
-                    `order_detail[${index}][customizeDetail]`,
-                    item.customizeDetail ? item.customizeDetail : null
-                );
-                formData.append(
-                    `order_detail[${index}][packagingOptions][print_location]`,
-                    item.packaging_options ? item.packaging_options?.print_location : null
-                ); formData.append(
-                    `order_detail[${index}][packagingOptions][side_option]`,
-                    item.packaging_options ? item.packaging_options?.side_option : null
-                ); formData.append(
-                    `order_detail[${index}][packagingOptions][price]`,
-                    item.packaging_options ? item.packaging_options?.price : null
-                );
-                // }
-
-                // if(item.lid) {
-                formData.append(
-                    `order_detail[${index}][lid]`,
-                    item.lid
-                );
-                // }
-
-                // If the item has a logo, convert it from Base64 to Blob and append it to the FormData
-                if (item.logo) {
-                    const blob = base64ToBlob(item.logo); // Convert Base64 to Blob
-                    formData.append(
-                        `order_detail[${index}][customize_logo_image]`,
-                        blob,
-                        "customized-logo.png"
-                    ); // Append image
-                }
-
-            }
+    if (emptyFields.length === Object.keys(requiredFields).length) {
+        toast.error("Please fill all fields");
+        return;
+    } else if (emptyFields.length > 0) {
+        const newErrors = {};
+        emptyFields.forEach(field => {
+            newErrors[field] = `Please fill ${requiredFields[field]}`;
         });
-        cartItems.forEach((item, index) => {
-            if (item.bundle_status == true) {
-                // Append only bundle_id and bundle_qty
-                formData.append(`bundle_ids[${index}]`, item.product_id);
-                formData.append(`bundle_qtys[${index}]`, item.product_quantity);
+        setErrors(newErrors);
+        toast.error(emptyFields.map(field => `Please fill ${requiredFields[field]}`).join(', '));
+        return;
+    }
+
+    // Clear errors if validation passes
+    setErrors({});
+
+    // Validate mobile number (min 7 digits, max 15 digits)
+    if (!/^\d{7,15}$/.test(mobile_no)) {
+        toast.error("Please enter a valid mobile number (7 to 15 digits).");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("order_date", formattedDate);
+    formData.append("first_name", first_name);
+    formData.append("last_name", last_name);
+    formData.append("email", email);
+    formData.append("mobile_no", mobile_no);
+    formData.append("sub_total", subtotal);
+    formData.append("area_id", selectedAreaId);
+    formData.append("grand_total", total);
+    formData.append("billing_address", billing_address);
+    formData.append("special_instruction", special_instruction);
+    formData.append("continue_as_guest", user ? 0 : 1);
+    formData.append("user_id", user ? userId : null);
+
+    // Add product details
+    cartItems.forEach((item, index) => {
+        if (item.bundle_status == false) {
+            const matchedOption = item.product_options?.find(
+                (option) =>
+                    option.size === item.product_size &&
+                    option.option === item.product_color
+            );
+
+            formData.append(
+                `order_detail[${index}][product_id]`,
+                item.product_id
+            );
+            formData.append(
+                `order_detail[${index}][quantity]`,
+                item.product_quantity
+            );
+            formData.append(
+                `order_detail[${index}][pack_size]`,
+                item.pack_size
+            );
+            formData.append(
+                `order_detail[${index}][total_pieces]`,
+                item.total_pieces
+            );
+            formData.append(
+                `order_detail[${index}][product_sub_total]`,
+                item.product_total
+            );
+            formData.append(
+                `order_detail[${index}][_is_customize]`,
+                item.logo ? 1 : 0
+            );
+
+            if (matchedOption) {
+                formData.append(
+                    `order_detail[${index}][product_option_id]`,
+                    matchedOption.id
+                );
             }
+
+            formData.append(
+                `order_detail[${index}][customizeDetail]`,
+                item.customizeDetail ? item.customizeDetail : null
+            );
+
+            formData.append(
+                `order_detail[${index}][packagingOptions][print_location]`,
+                item.packaging_options ? item.packaging_options?.print_location : null
+            );
+            formData.append(
+                `order_detail[${index}][packagingOptions][side_option]`,
+                item.packaging_options ? item.packaging_options?.side_option : null
+            );
+            formData.append(
+                `order_detail[${index}][packagingOptions][price]`,
+                item.packaging_options ? item.packaging_options?.price : null
+            );
+
+            formData.append(
+                `order_detail[${index}][lid]`,
+                item.lid
+            );
+
+            if (item.logo) {
+                const blob = base64ToBlob(item.logo);
+                formData.append(
+                    `order_detail[${index}][customize_logo_image]`,
+                    blob,
+                    "customized-logo.png"
+                );
+            }
+        }
+    });
+
+    // Bundles
+    cartItems.forEach((item, index) => {
+        if (item.bundle_status == true) {
+            formData.append(`bundle_ids[${index}]`, item.product_id);
+            formData.append(`bundle_qtys[${index}]`, item.product_quantity);
+        }
+    });
+
+    try {
+        setIsModal(false);
+
+        const response = await axios.public.post("order/place", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
         });
 
-        try {
-            // Close modal before the API request is made
-            setIsModal(false);
-            const response = await axios.public.post("order/place", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data", // Set correct content type for file upload
-                },
+        const { status, message, order_id } = response.data;
+
+        // --- WARNING ---
+        if (status === "warning") {
+            toast.warning(message);
+            return;
+        }
+
+        // --- ERROR ---
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
+
+        // --- SUCCESS ---
+        if (status === "success") {
+            // Show API message directly
+            toast.success(message);
+
+            // Confetti
+            confettiRef.current.addConfetti({
+                confettiRadius: 5,
+                confettiNumber: 300,
             });
-            // ✅ Handle API status from response
-            const { status, message, order_id } = response.data;
 
-            if (status === "warning") {
-                toast.warning(message);
-                return; // stop further processing
-            }
+            // Prepare invoice data
+            const orderDetails = {
+                orderId: order_id,
+                orderDate: formattedDate,
+                first_name,
+                last_name,
+                email,
+                mobile_no,
+                items: cartItems?.map((item) => ({
+                    productName: item.product_name,
+                    price: item.product_total,
+                    price_per_piece: item.price_per_piece,
+                    quantity: item.total_pieces,
+                    image: item.product_img,
+                })),
+                deliveryInfo: {
+                    address: billing_address,
+                    number: mobile_no,
+                },
+                subtotal: subtotal,
+                deliveryCharges: selectedAreaId ? 150 : 0,
+                grandTotal: total,
+            };
 
-            if (status === "error") {
-                toast.error(message);
-                return;
-            }
-            if (status === "success") {
-                // Order details to pass to the invoice
-                const orderDetails = {
-                    orderId: response.data.order_id, // Ensure your API returns this
-                    orderDate: formattedDate,
-                    first_name: first_name,
-                    last_name: last_name,
-                    email: email,
-                    mobile_no: mobile_no,
-                    items: cartItems?.map((item) => ({
-                        productName: item.product_name,
-                        price: item.product_total,
-                        price_per_piece: item.price_per_piece,
-                        quantity: item.total_pieces,
-                        image: item.product_img, // Ensure this is the correct image source
-                    })),
-                    paymentInfo: {
-                        method: "Visa",
-                        lastFourDigits: "56",
-                    },
-                    deliveryInfo: {
-                        address: billing_address,
-                        number: mobile_no,
-                    },
-                    subtotal: subtotal,
-                    deliveryCharges: selectedAreaId ? 150 : 0, // Adjust according to your logic
-                    grandTotal: total,
-                };
+            // Clear cart + fields
+            cartItems.forEach((item) => removeFromCart(item.id));
+            setIsDropdown(false);
+            setSelectedArea("Select Area");
+            setSelectedAreaId(null);
+            setAreaDeliveryCharges(0);
+            setFirst_name("");
+            setLast_name("");
+            setMobileNumber("");
+            setEmail("");
+            setBillingAddress("");
+            setSpecialInstructions("");
+            setDiscount("");
 
-                // Handle successful response
-                cartItems.forEach((item) => removeFromCart(item.id)); // Clear cart
-                setIsDropdown(false);
-                setSelectedArea("Select Area");
-                setSelectedAreaId(null);
-                setAreaDeliveryCharges(0);
-                setFirstName("");
-                setLastName("");
-                setMobileNumber("");
-                setEmail("");
-                setBillingAddress("");
-                setSpecialInstructions("");
-                setDiscount("");
-
-                toast.success(`${response.data.message}`);
-                confettiRef.current.addConfetti({
-                    confettiRadius: 5,
-                    confettiNumber: 300,
-                });
-
-                navigate("thankyou", { state: orderDetails });
-            }
-        } catch (error) {
-            console.log("Form submission error:", error);
+            navigate("thankyou", { state: orderDetails });
         }
-    };
+    } catch (error) {
+        console.log("Form submission error:", error);
+        // toast.error("Something went wrong!");
+    }
+};
+
 
     // Convert Base64 image to Blob
     const base64ToBlob = (base64Data, contentType = "image/png") => {
@@ -325,6 +347,7 @@ function Checkout() {
         setSelectedAreaId(area.id);
         setAreaDeliveryCharges(area.shipping_rate);
         setIsDropdown(!isDropdown);
+        setErrors(prev => ({ ...prev, selectedAreaId: '' }));
     };
     // const downloadInvoice = async (orderDetails) => {
     //     setLoading(true);
@@ -392,10 +415,10 @@ function Checkout() {
                     </h3>
                     <div className="grid grid-cols-12 gap-5 py-5">
                         <div className="sm:col-span-6 col-span-full w-full flex flex-col gap-2">
-                            <label htmlFor="First">First Name</label>
+                            <label htmlFor="First">First Name {errors.first_name && <span className="text-red-500">*</span>}</label>
                             <input
                                 type="text"
-                                className="w-full border p-2 px-2 rounded border-gray-300 bg-transparent"
+                                className={`w-full border p-2 px-2 rounded border-gray-300 bg-transparent ${errors.first_name ? 'border-red-500' : ''}`}
                                 id="First"
                                 placeholder="First Name"
                                 value={first_name}
@@ -405,6 +428,7 @@ function Checkout() {
                                     // Allow only A–Z and spaces
                                     if (/^[A-Za-z ]*$/.test(value)) {
                                         setFirst_name(value);
+                                        setErrors(prev => ({ ...prev, first_name: '' }));
                                     }
                                 }}
                                 required
@@ -412,10 +436,10 @@ function Checkout() {
 
                         </div>
                         <div className="sm:col-span-6 col-span-full w-full flex flex-col gap-2">
-                            <label htmlFor="Last">Last Name</label>
+                            <label htmlFor="Last">Last Name {errors.last_name && <span className="text-red-500">*</span>}</label>
                             <input
                                 type="text"
-                                className="w-full border p-2 px-2 rounded border-gray-300 bg-transparent"
+                                className={`w-full border p-2 px-2 rounded border-gray-300 bg-transparent ${errors.last_name ? 'border-red-500' : ''}`}
                                 id="Last"
                                 placeholder="Last Name"
                                 value={last_name}
@@ -424,6 +448,7 @@ function Checkout() {
 
                                     if (/^[A-Za-z ]*$/.test(value)) {
                                         setLast_name(value);
+                                        setErrors(prev => ({ ...prev, last_name: '' }));
                                     }
                                 }}
                                 required
@@ -431,29 +456,33 @@ function Checkout() {
 
                         </div>
                         <div className="sm:col-span-6 col-span-full w-full flex flex-col gap-2">
-                            <label htmlFor="Number">Mobile Number</label>
+                            <label htmlFor="Number">Mobile Number {errors.mobile_no && <span className="text-red-500">*</span>}</label>
                             <input
                                 type="number"
-                                className="w-full border p-2 px-2 rounded border-gray-300 bg-transparent"
+                                className={`w-full border p-2 px-2 rounded border-gray-300 bg-transparent ${errors.mobile_no ? 'border-red-500' : ''}`}
                                 id="Number"
 
                                 placeholder="Mobile Number"
                                 value={mobile_no}
-                                onChange={(e) =>
-                                    setMobileNumber(e.target.value)
-                                } // Fixed here
+                                onChange={(e) => {
+                                    setMobileNumber(e.target.value);
+                                    setErrors(prev => ({ ...prev, mobile_no: '' }));
+                                }}
                                 required
                             />
                         </div>
                         <div className="sm:col-span-6 col-span-full w-full flex flex-col gap-2">
-                            <label htmlFor="Email">Email</label>
+                            <label htmlFor="Email">Email {errors.email && <span className="text-red-500">*</span>}</label>
                             <input
                                 type="email"
-                                className="w-full border p-2 px-2 rounded border-gray-300 bg-transparent"
+                                className={`w-full border p-2 px-2 rounded border-gray-300 bg-transparent ${errors.email ? 'border-red-500' : ''}`}
                                 id="Email"
                                 placeholder="Email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)} // Fixed here
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    setErrors(prev => ({ ...prev, email: '' }));
+                                }}
                                 required
                             />
                         </div>
@@ -463,10 +492,10 @@ function Checkout() {
                     </h3>
                     <div className="grid grid-cols-12 gap-5 py-5">
                         <div className="sm:col-span-6 col-span-full w-full flex flex-col gap-2 relative">
-                            <label htmlFor="dropdown">Area</label>
+                            <label htmlFor="dropdown">Area {errors.selectedAreaId && <span className="text-red-500">*</span>}</label>
                             <div
                                 onClick={() => setIsDropdown(!isDropdown)}
-                                className="flex justify-between items-center p-2 rounded px-3 my-2 border border-gray-300 bg-transparent cursor-pointer"
+                                className={`flex justify-between items-center p-2 rounded px-3 my-2 border border-gray-300 bg-transparent cursor-pointer ${errors.selectedAreaId ? 'border-red-500' : ''}`}
                             >
                                 <p>{selectedArea}</p>
                                 <PiCaretDownThin size={20} />
@@ -489,19 +518,18 @@ function Checkout() {
                                         ))}
                                 </div>
                             )}
-                            <label htmlFor="address">Address</label>
+                            <label htmlFor="address">Address {errors.billing_address && <span className="text-red-500">*</span>}</label>
                             <textarea
-                                className="w-full border p-2 px-2 rounded border-gray-300 bg-transparent resize-none" // Set fixed height and disabled resizing
+                                className={`w-full border p-2 px-2 rounded border-gray-300 bg-transparent resize-none ${errors.billing_address ? 'border-red-500' : ''}`}
                                 placeholder="Enter your address"
                                 cols={4}
                                 rows={5}
                                 id="address"
-                                ref={searchInputRef}
-                                // value={billing_address}
-                                // onChange={(e) =>
-                                //     setBillingAddress(e.target.value)
-                                // } // Fixed here
-                                onChange={() => setBillingAddress(searchInputRef?.current?.value)}
+                                value={billing_address}
+                                onChange={(e) => {
+                                    setBillingAddress(e.target.value);
+                                    setErrors(prev => ({ ...prev, billing_address: '' }));
+                                }}
                                 required
                             ></textarea>
                             {/* <div className="w-[90%] flex flex-col mb-[8px] "> */}
@@ -537,18 +565,30 @@ function Checkout() {
                         </div>
                     </div>
                     <h3 className="py-5 text-2xl font-semibold">Payment:</h3>
-                    <div className="border-b border-gray-300 py-3 flex flex-row items-center justify-between">
-                        <p className="text-xs">Only Cash on delivery</p>
-                        <img
-                            src={`${Image_Url}cashOndeliveryImg.svg`}
-                            alt="Cash on delivery"
-                        />
-                    </div>
-                    <img
+           <div className="border-b border-gray-300 py-3">
+    <p className="text-xs mb-2">Delivery Location</p>
+
+    <div className="h-44 w-full rounded-lg overflow-hidden">
+        <MapContainer 
+            center={[24.8607, 67.0011]} 
+            zoom={13} 
+            scrollWheelZoom={false} 
+            className="h-full w-[200px] md:w-full"
+        >
+            <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="© OpenStreetMap"
+            />
+        </MapContainer>
+    </div>
+</div>
+
+
+                    {/* <img
                         className="py-10 w-full"
                         src={`${Image_Url}mapImg.svg`}
                         alt="Map"
-                    />
+                    /> */}
                     {/* <div className="map-container">
                 <GoogleMapComponent searchInputRef={searchInputRef} />
               </div> */}

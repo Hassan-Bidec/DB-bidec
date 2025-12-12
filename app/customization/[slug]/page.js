@@ -14,13 +14,14 @@ import { BiSolidImageAdd } from 'react-icons/bi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '../../src/Context/UserContext';
-import { useCart } from '../../src/Context/CartContext';
+// import { useCart } from '../../src/Context/CartContext';
 import { useWishlist } from '../../src/Context/WishlistContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiX } from 'react-icons/fi';
 import  CartModal  from '../../src/components/cart/CartModal';
 import CustomDetailSeo from '../../src/components/CustomDetailSeo';
+import { useCart } from '../../src/Context/CartContext';
 
 export default function CustomDetails() {
   const [productDetail, setProductDetail] = useState([]);
@@ -154,9 +155,104 @@ export default function CustomDetails() {
   });
 
   // Add to cart logic (same as before, unchanged)
-  const handleAddCart = async (product) => {
-    // ... copy your full handleAddCart logic exactly as is ...
-  };
+   const handleAddCart = async (product) => {
+  
+          if(!selectedOption){
+              toast.error(`Select a packaging option`);
+          }
+          const product_id = product.id;
+          const product_name = product.name;
+          const pack_size = selectedPackSize || 1; // Ensure pack size is at least 1
+          const product_quantity = subQuantity || 1; // Ensure subQuantity is at least 1
+          const total_pieces = Number(pack_size) * Number(product_quantity);
+  
+          // Ensure selectedPackPrice and selectedOptionPrice are valid numbers
+          const price_per_piece = Number(selectedPackPrice ? selectedPackPrice : 0);
+  
+          // Calculate product total with valid numbers
+          const baseTotal  = (Number(total_pieces) * (Number(price_per_piece) + Number(selectedOptionPrice ? selectedOptionPrice : 0) + Number(selectedOption ? selectedOption?.price : 0) + Number(selectedLidPrice ? selectedLidPrice : 0))).toFixed(2);
+   // Apply discount if available
+   let finalTotal = parseFloat(baseTotal);
+   const discountPercentage = parseFloat(product?.activeDiscount?.discount_percentage);
+   if (!isNaN(discountPercentage) && discountPercentage > 0) {
+     finalTotal = baseTotal - (baseTotal * (discountPercentage / 100));
+   }
+  
+   const product_total = finalTotal.toFixed(2);
+  
+          const product_img = product.image_path;
+          const product_variants = selectedProductVariants;
+          const product_options = productOptions;
+          const product_color = selectedColor || null;
+          const product_size = selectedSize || null;
+          const product_lids = productLid ? productLid : null;
+          const lid = selectedLidId ? selectedLidId : null;
+          const lid_Price = selectedLidPrice ? selectedLidPrice : null;
+          const custom_Note = customizeDetail ? customizeDetail : null;
+          // const product_lids = productLids ? productLids : null;
+          // const lid = selectedLidId ? selectedLidId : null;
+          const option_Price = selectedOptionPrice ? selectedOptionPrice : 0;
+          let logo = null;
+          const order_limit = product?.order_limit !== null ? product?.order_limit : 1000;
+          const packaging_options = selectedOption;
+  console.log('order limit', order_limit)
+          // If there's an uploaded file (logo), convert it to Base64
+          if (uploadedFile) {
+              try {
+                  logo = await convertFileToBase64(uploadedFile); // Await the file conversion
+              } catch (error) {
+                  console.error('Error converting logo to Base64:', error);
+              }
+          }
+          // if (selectedSize === '') {
+          //     toast.error(`Select a size`);
+          // } else if (selectedColor === '') {
+          //     toast.error(`Select a Color`);
+          // } else
+           if (uploadedFile === null) {
+              toast.error(`Select a file`);
+          }
+  
+          // else if (customizeDetail === '') {
+          //     toast.error(`Select a file`);
+          // }
+          else {
+              // Add the product to the cart
+              addToCart(
+                  product_id,
+                  product_name,
+                  product_quantity,
+                  pack_size,
+                  total_pieces,
+                  price_per_piece,
+                  product_img,
+                  product_total,
+                  product_variants,
+                  product_color,
+                  product_size,
+                  logo, // You can store the logo file in the cart as needed
+                  product_options,
+                  product_lids,
+                  lid,
+                  lid_Price,
+                  customizeDetail,
+                  option_Price,
+                  false,
+  order_limit,
+  packaging_options,
+  
+              );
+              setSelectedSize('');
+              setSelectedColor('');
+              setUploadedFile('');
+              setCustomizeDetail('');
+              document.getElementById('upload-image').value = '';
+              // Show success toast
+              setIsCartModalOpen(true)
+              // toast.success(`${product.name} added to cart`);
+          }
+  
+      };
 
   const handleSelectedBrand = (data) => {
     setSelectedBrands(data.name);
@@ -167,6 +263,7 @@ export default function CustomDetails() {
   };
 
   const handleCategoryLink = (item) => {
+    console.log("item" , item);
     router.push(`/customization-category/${item.slug}`);
   };
   // Close dropdown if clicked outside
@@ -491,7 +588,8 @@ export default function CustomDetails() {
                                         }}
                                         >+</button>
                                 </div>
-                                <button className='p-2 pt-3 bg-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs cursor-pointer rounded-md' onClick={() => handleAddCart(productDetail.product?.id)}>
+                              <button className='p-2 pt-3 bg-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'
+                                    onClick={() => handleAddCart(productDetail.product)}>
                                     ADD TO CART
                                 </button>
                             </div>
@@ -609,32 +707,26 @@ export default function CustomDetails() {
                 src={`${Image_Url}ShopAssets/bgGradient.svg`}
                 alt="bgGradient"
             /> */}
-            {isCartModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center  z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
-                    <div className="fixed md:top-36 md:right-4 bg-white shadow-lg p-4 rounded-lg z-50 w-[300px] transition-transform duration-500">
-                        <div className='flex justify-between  text-black'>
-                            <h4 className="text-md font-bold">Added to Cart</h4>
-                            <FiX size={24} onClick={() => setIsCartModalOpen(false)} />
-                        </div>
-                        <CartModal />
-                        <div className="flex flex-row gap-2 mt-2">
-                            <Link to='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
-                                CONTINUE
-                            </Link>
-                            <Link to='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
-                                CART
-                            </Link>
-                        </div>
-                    </div>
-
-                    
-                </div>
-
-
-                
-            )}
+          {isCartModalOpen && (
+                       <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
+                           <div className="fixed md:top-36 md:right-4 bg-white shadow-lg p-4 rounded-lg z-50 w-[300px] transition-transform duration-500">
+                               <div className='flex justify-between  text-black'>
+                                   <h4 className="text-md font-bold">Added to Cart</h4>
+                                   <FiX size={24} onClick={() => setIsCartModalOpen(false)} />
+                               </div>
+                               <CartModal />
+                               <div className="flex flex-row gap-2 mt-2">
+                                   <Link href='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
+                                       CONTINUE
+                                   </Link>
+                                   <Link href='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
+                                       CART
+                                   </Link>
+                               </div>
+                           </div>
+                       </div>
+                   )}
             
         </div>
     )
 }
-

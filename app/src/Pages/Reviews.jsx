@@ -13,6 +13,7 @@ import { AiFillDislike, AiFillLike } from 'react-icons/ai';
 import axios from '../Utils/axios';
 import CustomSeo from '../components/CustomSeo';
 
+
 const Reviews = () => {
     const [reviews, setReviews] = useState([]);
     const [filteredReviews, setFilteredReviews] = useState([]);
@@ -65,10 +66,10 @@ const Reviews = () => {
                         
                     }}>
                     <div className='md:w-[45%] md:pl-30 pl-10 '>
-                        <h1 className='md:text-6xl text-5xl text-center font-bazaar text-white'>
+                        <h1 className='md:text-6xl text-5xl md:mr-30 text-center font-bazaar text-white'>
                             Our Story Through Your Words
                         </h1>
-                        <div className='flex justify-center items-center gap-2 mt-4'>
+                        <div className='flex justify-center items-center gap-2 mt-4 md:mr-30'>
                             <p className='text-lg font-medium text-white'>{reviews.total_reviews_count} + Reviews </p>
                             <span className='text-lg text-white'>|</span>
                             <p className='text-lg font-medium text-white'>Average of {averageRating} star</p>

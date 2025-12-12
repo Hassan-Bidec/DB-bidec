@@ -1,6 +1,6 @@
 "use client";
 import React, {  useEffect, useRef, useState } from 'react';
-import {  usePathname, useRouter } from 'next/navigation';
+import {  useParams, usePathname, useRouter } from 'next/navigation';
 import axios from '../../src/Utils/axios';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,8 +20,9 @@ import  CartModal from '../../src/components/cart/CartModal';
 import { FiX } from 'react-icons/fi';
 
 function ShopDetails() {
-  const { slug } = useParams(); // ✅ Correct slug
+  const { slug } = useParams(); 
   const router = useRouter();
+    const pathname = usePathname();
 
     const [productDetail, setProductDetail] = useState([]);
     const [productVariants, setProductVariants] = useState([]);
@@ -161,7 +162,6 @@ if (!path.endsWith('/')) {
     path += '/';
 }
 
-// const { slug } = useParams();
 
 // Extract product slug/id
 const id = path.split("/product/")[1] || '';
@@ -456,7 +456,7 @@ const inquiryMessage = encodeURIComponent(
     /* CASE 2: Array but empty */
     <div className="w-full h-1/4 py-1">
       <Image
-        // src={`${Image_Url}defaultImage.svg`}
+        src={`${Image_Url}defaultImage.svg`}
         alt="Default Product Image"
         width={500}
         height={500}
