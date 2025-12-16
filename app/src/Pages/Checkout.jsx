@@ -1,7 +1,5 @@
 "use client";
 import ReactDOM from "react-dom";
-import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer } from "react-leaflet";
 import React, { useEffect, useRef, useState } from "react";
 import Hamburger from "../components/Hamburger";
 import { PiCaretDownThin } from "react-icons/pi";
@@ -568,19 +566,15 @@ function Checkout() {
            <div className="border-b border-gray-300 py-3">
     <p className="text-xs mb-2">Delivery Location</p>
 
-    <div className="h-44 w-full rounded-lg overflow-hidden">
-        <MapContainer 
-            center={[24.8607, 67.0011]} 
-            zoom={13} 
-            scrollWheelZoom={false} 
-            className="h-full w-[200px] md:w-full"
-        >
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="© OpenStreetMap"
-            />
-        </MapContainer>
-    </div>
+  <div className="h-44 w-full rounded-lg overflow-hidden">
+  <iframe
+    src="https://www.google.com/maps?q=24.8607,67.0011&z=13&output=embed"
+    className="h-full w-full border-0"
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  ></iframe>
+</div>
+
 </div>
 
 
