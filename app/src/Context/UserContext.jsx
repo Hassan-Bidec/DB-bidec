@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { getAccessToken, getUserData } from "../Utils/storage";
 
 // Create Context
-const UserContext = createContext(null);
+const UserContext = createContext({ user: null, setUser: () => {} });
 
 // Custom hook
 export const useUser = () => useContext(UserContext);
