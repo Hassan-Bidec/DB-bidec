@@ -29,20 +29,16 @@ export async function generateMetadata() {
 
 // 🟩 Load InquiryForm Component
 
-import { Suspense } from "react";
 
-import CustomDetailsPage from "../src/Pages/CustomDetails";
-import dynamic from "next/dynamic";
-const CustomDetails = dynamic(
-  () => import("../src/Pages/CustomDetails"),
-  { ssr: false }
-);
+
+import CustomDetails from "../src/Pages/CustomDetails";
+
 export default function Page() {
   return (
     <>
-    <Suspense fallback={<div>Loading...</div>}>
+    {/* <Suspense fallback={<div>Loading...</div>}> */}
    <CustomDetails />
-</Suspense>
+{/* </Suspense> */}
 
      
     </>
