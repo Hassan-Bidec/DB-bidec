@@ -247,7 +247,26 @@ export default function Login() {
                                 LOGIN
                             </button>
                         </form>
+                         <img
+                            // data-aos="fade-down"
+                            className="absolute z-0 top-10 right-0 w-16 hscreen"
+                            src={`${Image_Url}basket.svg`}
+                            alt="bgGradient"
+                        />
+                        <img
+                            // data-aos="fade-down"
+                            className="absolute z-0 top-30 left-0 w-12 hscreen"
+                            src={`${Image_Url}plate.svg`}
+                            alt="bgGradient"
+                        />
+                        <img
+                            // data-aos="fade-down"
+                            className="absolute z-0 bottom-0 right-20 w-20 hscreen"
+                            src={`${Image_Url}FooterAssets/footerCenterImg.svg`}
+                            alt="bgGradient"
+                        />
                     </div>
+                 
                 )}
 
                 {/* ---------- Forgot Password ---------- */}
@@ -349,7 +368,7 @@ export default function Login() {
                     </h4> 
 
                     <p className="text-center mt-3 px-6">
-                        Enter your details and start your journey with us
+                     Enter your personal details and start your journey with us
                     </p>
 
                     <Link

@@ -183,14 +183,14 @@ export default function CustomDetails() {
             />
             {/* Breadcrumb and Title */}
             <div className="flex flex-col py-5">
-                <p><Link href='/'>Home</Link> / <Link href='/customization/'>Customization</Link> /  <span
+                <p><Link to='/'>Home</Link> / <Link to='/customization/'>Customization</Link> /  <span
                     onClick={() => handleCategoryLink(productDetail.product?.category)}
                     className="inline cursor-pointer  "
                 >
                     {/* <Link to={`/product-category/${productDetail?.product?.category?.slug}`}> */}
                         {productDetail.product?.category?.name || "Category Name"}
                     {/* </Link> */}
-                </span> / {productDetail.product?.subCategory?.name ? <> <Link href='/'> {productDetail.product?.subCategory.name || 'Category Name'} </Link> /</> : ""} {productDetail.product?.name || 'Product Name'}</p>
+                </span> / {productDetail.product?.subCategory?.name ? <> <Link to='/'> {productDetail.product?.subCategory.name || 'Category Name'} </Link> /</> : ""} {productDetail.product?.name || 'Product Name'}</p>
                 {/* <h3 className="py-10 font-bazaar md:text-6xl text-5xl">INQUIRY FORM</h3> */}
             </div>
             <main className=''>
@@ -458,7 +458,7 @@ export default function CustomDetails() {
                         </div>
 
                         <div className="flex flex-row md:gap-5 gap-2">
-                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar text-xs' onClick={() => handleWishlist(productDetail.product?.id)}>ADD TO WISHLIST</button>
+                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar text-xs' onClick={() => handleWishlist(productVariants[0].id)}>ADD TO WISHLIST</button>
                             <button className='p-3 border flex flex-row justify-between items-center gap-2  border-[#1E7773] w32 lg:text-[15px]  font-bazaar text-xs rounded-md' onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=${inquiryMessage}`, '_blank')}><FaWhatsapp className='text-[#1E7773] text-2xl' /> <p className="pt-2">ORDER ON WHATSAPP</p></button>
                         </div>
                         {/* <button className='p-3 pt-3 bg-[#1E7773] w-52 lg:text-[15px] font-bazaar text-xs rounded-md'>CUSTOMIZED PRINTING</button> */}
@@ -568,10 +568,10 @@ export default function CustomDetails() {
                         </div>
                         <CartModal />
                         <div className="flex flex-row gap-2 mt-2">
-                            <Link href='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
+                            <Link to='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
                                 CONTINUE
                             </Link>
-                            <Link href='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
+                            <Link to='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
                                 CART
                             </Link>
                         </div>

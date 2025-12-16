@@ -606,7 +606,7 @@ export default function CustomDetails() {
                         </div>
 
                         <div className="flex flex-row md:gap-5 gap-2">
-                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar cursor-pointer text-xs' onClick={() => handleWishlist(productDetail.product?.id)}>ADD TO WISHLIST</button>
+                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar cursor-pointer text-xs' onClick={() => handleWishlist(productVariants[0].product?.id)}>ADD TO WISHLIST</button>
                             <button className='p-3 border flex flex-row justify-between items-center gap-2  border-[#1E7773] w32 lg:text-[15px]  font-bazaar text-xs rounded-md' onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=${inquiryMessage}`, '_blank')}><FaWhatsapp className='text-[#1E7773] text-2xl' /> <p className="pt-2 cursor-pointer">ORDER ON WHATSAPP</p></button>
                         </div>
                         {/* <button className='p-3 pt-3 bg-[#1E7773] w-52 lg:text-[15px] font-bazaar text-xs rounded-md'>CUSTOMIZED PRINTING</button> */}
@@ -708,7 +708,7 @@ export default function CustomDetails() {
                 alt="bgGradient"
             /> */}
           {isCartModalOpen && (
-                       <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
+                       <div className="fixed inset-0 flex items-center justify-center z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
                            <div className="fixed md:top-36 md:right-4 bg-white shadow-lg p-4 rounded-lg z-50 w-[300px] transition-transform duration-500">
                                <div className='flex justify-between  text-black'>
                                    <h4 className="text-md font-bold">Added to Cart</h4>
@@ -730,3 +730,4 @@ export default function CustomDetails() {
         </div>
     )
 }
+

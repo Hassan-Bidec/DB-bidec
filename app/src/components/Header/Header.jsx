@@ -635,7 +635,7 @@ function Header() {
 
   {/* WhatsApp Button */}
   <a
-    href="https://wa.me/+92 3213850002"
+    href="https://wa.me/+923213850002"
     target="_blank"
     className="w-12 h-12 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 transition"
   >

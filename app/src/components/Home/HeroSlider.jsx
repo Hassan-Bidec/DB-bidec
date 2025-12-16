@@ -124,7 +124,7 @@ function HeroSlider() {
        
         backgroundImage: `url('${Image_Url}${slide.img}')`,
         backgroundPosition: "right top 22px",
-        // backgroundSize: "contain",
+        backgroundSize: "contain",
         backgroundRepeat: "no-repeat",
       }}
     ></div>

@@ -1,6 +1,6 @@
 "use client";
 import React, {  useEffect, useRef, useState } from 'react';
-import {  useParams, usePathname, useRouter } from 'next/navigation';
+import {  useParams, useRouter, usePathname } from 'next/navigation';
 import axios from '../../src/Utils/axios';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,9 +20,8 @@ import  CartModal from '../../src/components/cart/CartModal';
 import { FiX } from 'react-icons/fi';
 
 function ShopDetails() {
-  const { slug } = useParams(); 
+  const { slug } = useParams(); // ✅ Correct slug
   const router = useRouter();
-    const pathname = usePathname();
 
     const [productDetail, setProductDetail] = useState([]);
     const [productVariants, setProductVariants] = useState([]);
@@ -157,11 +156,13 @@ const [productUrl, setProductUrl] = useState('');
 // Ensure the URL ends with a slash
 
 
+const pathname = usePathname();   // <-- ADD THIS
+
 let path = pathname;
 if (!path.endsWith('/')) {
     path += '/';
 }
-
+// const { slug } = useParams();
 
 // Extract product slug/id
 const id = path.split("/product/")[1] || '';
@@ -559,7 +560,7 @@ const inquiryMessage = encodeURIComponent(
                             ) : (
                                 <span>No variants available</span>
                             )} */}
-                            {selectedProductVariants[0]?.price} Rs
+                         Rs {selectedProductVariants[0]?.price} 
                         </p>
 
                         <form onSubmit={handleSubmit} className='max-w-130  w-full flex flex-col gap-5 '>
@@ -729,7 +730,7 @@ const inquiryMessage = encodeURIComponent(
 </div>
 
                         <div className="flex flex-row md:gap-5 gap-2 cursor-pointe">
-                            <button onClick={() => handleWishlist(productDetail.product?.id)} className='p-2 pt-3 border-b-4 border-[#1E7773]  lg:text-[15px] font-bazaar cursor-pointer text-xs '>ADD TO WISHLIST</button>
+                            <button onClick={() => handleWishlist(productVariants[0].id)} className='p-2 pt-3 border-b-4 border-[#1E7773]  lg:text-[15px] font-bazaar cursor-pointer text-xs '>ADD TO WISHLIST</button>
                             <button className='p-3 border flex flex-row justify-between items-center gap-2  border-[#1E7773] w32 lg:text-[15px]  font-bazaar text-xs rounded-md'
                                 onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=${inquiryMessage}`, '_blank')}>
 <FaWhatsapp size={25} className="text-[#1E7773]" />
