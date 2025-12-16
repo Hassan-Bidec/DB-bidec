@@ -31,7 +31,8 @@ export async function generateMetadata() {
 
 import { Suspense } from "react";
 import CustomDetails from "../src/Pages/CustomDetails";
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
+const CustomDetails = dynamic(() => import('../src/Pages/CustomDetails'), {ssr: false});
 export default function Page() {
   return (
     <>
