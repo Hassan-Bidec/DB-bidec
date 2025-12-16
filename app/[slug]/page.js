@@ -1,27 +1,27 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Assets_Url, Image_Url } from '../../src/const';
-import axios from '../../src/Utils/axios';
+import { Assets_Url, Image_Url } from '../src/const';
+import axios from '../src/Utils/axios';
 // import './Pages.css';
 import { FaAngleDown, FaCircle, FaWhatsapp } from 'react-icons/fa';
-import RcmdProduct from '../../src/components/Shop/RcmdProduct';
-import Deals from '../../src/components/Home/Deals';
-import Review from '../../src/components/Reviews/Review';
+import RcmdProduct from '../src/components/Shop/RcmdProduct';
+import Deals from '../src/components/Home/Deals';
+import Review from '../src/components/Reviews/Review';
 import { PiCaretDownThin, PiCaretUpThin } from 'react-icons/pi';
 import { TbCameraPlus } from 'react-icons/tb';
 import { BiSolidImageAdd } from 'react-icons/bi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '../../src/Context/UserContext';
-// import { useCart } from '../../src/Context/CartContext';
-import { useWishlist } from '../../src/Context/WishlistContext';
+import { useUser } from '../src/Context/UserContext';
+// import { useCart } from '../src/Context/CartContext';
+import { useWishlist } from '../src/Context/WishlistContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiX } from 'react-icons/fi';
-import  CartModal  from '../../src/components/cart/CartModal';
-import CustomDetailSeo from '../../src/components/CustomDetailSeo';
-import { useCart } from '../../src/Context/CartContext';
+import  CartModal  from '../src/components/cart/CartModal';
+import CustomDetailSeo from '../src/components/CustomDetailSeo';
+import { useCart } from '../src/Context/CartContext';
 
 export default function CustomDetails() {
   const [productDetail, setProductDetail] = useState([]);
