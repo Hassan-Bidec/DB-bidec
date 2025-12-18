@@ -58,9 +58,9 @@ export default function CustomDetails() {
   const [customizeDetail, setCustomizeDetail] = useState('');
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
-  const { addToWishlist } = useWishlist();
+  const { addToWishlist } = useWishlist() || {};
   const { addToCart } = useCart();
-  const { user } = useUser();
+  const { user } = useUser() || {};
   const router = useRouter();
   const pathname = usePathname();
 
@@ -171,16 +171,17 @@ export default function CustomDetails() {
     return (
         <div className="relative py-32 px-10 text-white overflow-hidden">
             <ToastContainer autoClose={500} />
-            <CustomDetailSeo
-                title={productDetail?.seoMetadata?.meta_title}
-                des={productDetail?.seoMetadata?.meta_description}
-                focuskey={productDetail?.seoMetadata?.focus_keyword}
-                canonicalUrl={productDetail?.seoMetadata?.canonical_url}
-                schema={productDetail?.seoMetadata?.schema}
-                og_title={productDetail?.product?.name}
-                og_des={productDetail?.product?.description}
-                og_img={productDetail?.product?.product_image[0]?.image}
-            />
+            
+<CustomDetailSeo
+  title={productDetail?.seoMetadata?.meta_title || ''}
+  des={productDetail?.seoMetadata?.meta_description || ''}
+  focuskey={productDetail?.seoMetadata?.focus_keyword || ''}
+  canonicalUrl={productDetail?.seoMetadata?.canonical_url || ''}
+  schema={productDetail?.seoMetadata?.schema || ''}
+  og_title={productDetail?.product?.name || ''}
+  og_des={productDetail?.product?.description || ''}
+  og_img={productDetail?.product?.product_image?.[0]?.image || ''}
+/>
             {/* Breadcrumb and Title */}
             <div className="flex flex-col py-5">
                 <p><Link to='/'>Home</Link> / <Link to='/customization/'>Customization</Link> /  <span
