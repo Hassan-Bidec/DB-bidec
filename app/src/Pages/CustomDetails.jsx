@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Assets_Url, Image_Url } from '../const';
 import axios from '../Utils/axios';
-import './Pages.css';
+// import './Pages.css';
 import { FaAngleDown, FaCircle, FaWhatsapp } from 'react-icons/fa';
 import RcmdProduct from '../components/Shop/RcmdProduct';
 import Deals from '../components/Home/Deals';
@@ -14,13 +14,13 @@ import { BiSolidImageAdd } from 'react-icons/bi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '../Context/UserContext';
-import { useCart } from '../Context/CartContext';
 import { useWishlist } from '../Context/WishlistContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiX } from 'react-icons/fi';
 import CartModal from '../components/cart/CartModal';
 import CustomDetailSeo from '../components/CustomDetailSeo';
+import { useCart } from '../Context/CartContext';
 
 export default function CustomDetails() {
     const [productDetail, setProductDetail] = useState([]);
@@ -57,6 +57,8 @@ export default function CustomDetails() {
     const [logoImage, setLogoImage] = useState(null);
     const [customizeDetail, setCustomizeDetail] = useState('');
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+
+    const dropdownRef = useRef(null);
 
     const { addToWishlist } = useWishlist() || {};
     const { addToCart } = useCart() || {};
@@ -97,6 +99,8 @@ export default function CustomDetails() {
                 setProductLid(resData.product?.product_lid_options);
                 setRecomendedProducts(resData.recommended_products);
                 setSelectedImage(resData?.product.product_image[0].image || '');
+
+                console.log("selectedPackSize", selectedPackSize)
             } catch (error) {
                 console.log(error);
             }
@@ -116,6 +120,7 @@ export default function CustomDetails() {
             const wishlistResponse = await axios.protected.get(`/user/wishlist/${id}/check`);
             if (wishlistResponse.data.exists) {
                 toast.error('Product already added to wishlist');
+                console.log("wishlistResponse", wishlistResponse)
             } else {
                 const response = await axios.protected.post(`/user/wishlist/${id}/add`);
                 if (response.status === 200) {
@@ -151,9 +156,91 @@ export default function CustomDetails() {
         reader.onerror = (error) => reject(error);
     });
 
-    // Add to cart logic (same as before, unchanged)
+    // Add to cart logic
     const handleAddCart = async (product) => {
-        // ... copy your full handleAddCart logic exactly as is ...
+
+        if (!selectedOption) {
+            toast.error(`Select a packaging option`);
+        }
+        const product_id = product.id;
+        const product_name = product.name;
+        const pack_size = selectedPackSize || 1; // Ensure pack size is at least 1
+        const product_quantity = subQuantity || 1; // Ensure subQuantity is at least 1
+        const total_pieces = Number(pack_size) * Number(product_quantity);
+
+        // Ensure selectedPackPrice and selectedOptionPrice are valid numbers
+        const price_per_piece = Number(selectedPackPrice ? selectedPackPrice : 0);
+
+        // Calculate product total with valid numbers
+        const baseTotal = (Number(total_pieces) * (Number(price_per_piece) + Number(selectedOptionPrice ? selectedOptionPrice : 0) + Number(selectedOption ? selectedOption?.price : 0) + Number(selectedLidPrice ? selectedLidPrice : 0))).toFixed(2);
+        // Apply discount if available
+        let finalTotal = parseFloat(baseTotal);
+        const discountPercentage = parseFloat(product?.activeDiscount?.discount_percentage);
+        if (!isNaN(discountPercentage) && discountPercentage > 0) {
+            finalTotal = baseTotal - (baseTotal * (discountPercentage / 100));
+        }
+
+        const product_total = finalTotal.toFixed(2);
+
+        const product_img = product.image_path;
+        const product_variants = selectedProductVariants;
+        const product_options = productOptions;
+        const product_color = selectedColor || null;
+        const product_size = selectedSize || null;
+        const product_lids = productLid ? productLid : null;
+        const lid = selectedLidId ? selectedLidId : null;
+        const lid_Price = selectedLidPrice ? selectedLidPrice : null;
+        const custom_Note = customizeDetail ? customizeDetail : null;
+        const option_Price = selectedOptionPrice ? selectedOptionPrice : 0;
+        let logo = null;
+        const order_limit = product?.order_limit !== null ? product?.order_limit : 1000;
+        const packaging_options = selectedOption;
+        console.log('order limit', order_limit)
+        // If there's an uploaded file (logo), convert it to Base64
+        if (uploadedFile) {
+            try {
+                logo = await convertFileToBase64(uploadedFile); // Await the file conversion
+            } catch (error) {
+                console.error('Error converting logo to Base64:', error);
+            }
+        }
+        if (uploadedFile === null) {
+            toast.error(`Select a file`);
+        }
+        else {
+            // Add the product to the cart
+            addToCart(
+                product_id,
+                product_name,
+                product_quantity,
+                pack_size,
+                total_pieces,
+                price_per_piece,
+                product_img,
+                product_total,
+                product_variants,
+                product_color,
+                product_size,
+                logo, // You can store the logo file in the cart as needed
+                product_options,
+                product_lids,
+                lid,
+                lid_Price,
+                custom_Note,
+                option_Price,
+                false,
+                order_limit,
+                packaging_options,
+            );
+            setSelectedSize('');
+            setSelectedColor('');
+            setUploadedFile('');
+            setCustomizeDetail('');
+            document.getElementById('upload-image').value = '';
+            // Show success toast
+            setIsCartModalOpen(true)
+        }
+
     };
 
     const handleSelectedBrand = (data) => {
@@ -165,33 +252,48 @@ export default function CustomDetails() {
     };
 
     const handleCategoryLink = (item) => {
+        console.log("item", item);
         router.push(`/customization-category/${item.slug}`);
     };
+    // Close dropdown if clicked outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setBrandsOpen(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        console.log("selectedProductVariants", selectedProductVariants);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     return (
         <div className="relative py-32 px-10 text-white overflow-hidden">
             <ToastContainer autoClose={500} />
-
-            <CustomDetailSeo
-                title={productDetail?.seoMetadata?.meta_title || ''}
-                des={productDetail?.seoMetadata?.meta_description || ''}
-                focuskey={productDetail?.seoMetadata?.focus_keyword || ''}
-                canonicalUrl={productDetail?.seoMetadata?.canonical_url || ''}
-                schema={productDetail?.seoMetadata?.schema || ''}
-                og_title={productDetail?.product?.name || ''}
-                og_des={productDetail?.product?.description || ''}
-                og_img={productDetail?.product?.product_image?.[0]?.image || ''}
-            />
+            {/* <CustomDetailSeo
+                title={productDetail?.seoMetadata?.meta_title}
+                des={productDetail?.seoMetadata?.meta_description}
+                focuskey={productDetail?.seoMetadata?.focus_keyword}
+                canonicalUrl={productDetail?.seoMetadata?.canonical_url}
+                schema={productDetail?.seoMetadata?.schema}
+                og_title={productDetail?.product?.name}
+                og_des={productDetail?.product?.description}
+                og_img={productDetail?.product?.product_image[0]?.image}
+            /> */}
             {/* Breadcrumb and Title */}
             <div className="flex flex-col py-5">
-                <p><Link to='/'>Home</Link> / <Link to='/customization/'>Customization</Link> /  <span
+                <p><Link href='/'>Home</Link> / <Link href='/customization/'>Customization</Link> /  <span
                     onClick={() => handleCategoryLink(productDetail.product?.category)}
                     className="inline cursor-pointer  "
                 >
                     {/* <Link to={`/product-category/${productDetail?.product?.category?.slug}`}> */}
                     {productDetail.product?.category?.name || "Category Name"}
                     {/* </Link> */}
-                </span> / {productDetail.product?.subCategory?.name ? <> <Link to='/'> {productDetail.product?.subCategory.name || 'Category Name'} </Link> /</> : ""} {productDetail.product?.name || 'Product Name'}</p>
+                </span> / {productDetail.product?.subCategory?.name ? <> <Link href='/'> {productDetail.product?.subCategory.name || 'Category Name'} </Link> /</> : ""} {productDetail.product?.name || 'Product Name'}</p>
                 {/* <h3 className="py-10 font-bazaar md:text-6xl text-5xl">INQUIRY FORM</h3> */}
             </div>
             <main className=''>
@@ -241,16 +343,26 @@ export default function CustomDetails() {
                         {/* <h3 className='md:text-xl text-md font-semibold'>
                             Brand : {productDetail.product?.brand_name || 'Brand Name'}
                         </h3> */}
-                        <div onClick={() => setBrandsOpen(!brandsOpen)} className="relative ...">
-                            Brand : {selectedBrands || 'Brand Name'}
-                            <FaAngleDown className={`${brandsOpen ? 'rotate-180' : ''} duration-300`} />
+
+
+                        <div className="relative w-fit" ref={dropdownRef}>
+                            <h3
+                                onClick={() => setBrandsOpen(!brandsOpen)}
+                                className="md:text-xl flex flex-row gap-4 cursor-pointer items-center text-md font-semibold border p-2 rounded-lg px-4"
+                            >
+                                Brand: {selectedBrands || "Brand Name"}
+                                <FaAngleDown
+                                    className={`${brandsOpen ? "rotate-180" : ""} duration-300`}
+                                />
+                            </h3>
+
                             {brandsOpen && (
-                                <div className="absolute top-12 left-0 py-2 overflow-auto rounded-lg z-10 w-full h-32 bg-white">
+                                <div className="absolute top-14 left-0 py-2 overflow-auto rounded-lg z-10 w-75 h-32 bg-white shadow-md border">
                                     {brands.map((data) => (
                                         <div
                                             key={data.id}
                                             onClick={() => handleSelectedBrand(data)}
-                                            className="text-black px-4 py-1 text-md hover:bg-gray-200 duration-100"
+                                            className="text-black px-4 py-2 text-md hover:bg-gray-200 cursor-pointer duration-100"
                                         >
                                             {data.name}
                                         </div>
@@ -259,21 +371,21 @@ export default function CustomDetails() {
                             )}
                         </div>
 
-                        <p className='text-xl font-semibold'>
+                        <div className='text-xl font-semibold'>
                             {selectedProductVariants && selectedProductVariants.length > 0 ? (
                                 // <>
                                 //     Rs {selectedProductVariants[0].price} - {selectedProductVariants[selectedProductVariants.length - 1].price}
                                 //     {/* ₨ {quantity && selectedVariantPrice && (quantity * subQuantity * selectedVariantPrice)} */}
                                 // </>
-                                <p>
+                                <div>
                                     Rs {selectedProductVariants[0].price}
                                     {selectedProductVariants.length > 1 &&
                                         ` - Rs ${selectedProductVariants[selectedProductVariants.length - 1].price}`}
-                                </p>
+                                </div>
                             ) : (
                                 <span>No variants available</span>
                             )}
-                        </p>
+                        </div>
                         <form onSubmit={handleSubmit} className='w-3/4 flex flex-col gap-5'>
                             <div className="flex mdflex-row flex-wrap gap-3">
                                 {productLid?.length > 0 && (
@@ -323,12 +435,6 @@ export default function CustomDetails() {
                                         )}
                                     </div>
                                 )}
-                                {/* <div className="relative">
-                                    <h3 onClick={() => setPieces(!pieces)} className="flex flex-row justify-between items-center text-md gap-3 border p-2 rounded-md md:w-24 w-40 border-[#1E7773] "><p>Pieces</p><p>{pieces ? <PiCaretUpThin /> : <PiCaretDownThin />}</p></h3>
-                                    {pieces && (
-                                        <div className="md:w-24 w-40  rounded-md my-2 h-32 absolute z-10 overflow-auto bg-white">ssd</div>
-                                    )}
-                                </div> */}
                                 <div className="relative">
                                     {/* Dropdown button for pack size */}
                                     <h3
@@ -348,7 +454,7 @@ export default function CustomDetails() {
                                                     onClick={() => {
                                                         setSelectedPackSize(variant.pack_size); // Set selected pack size
                                                         setSelectedPackPrice(variant.price_per_piece)
-                                                        console.log(selectedPackPrice);
+                                                        console.log("selectedPackPrice", selectedPackPrice);
 
                                                         setPiecesDropdown(false); // Close dropdown after selection
                                                     }}>
@@ -358,20 +464,6 @@ export default function CustomDetails() {
                                         </div>
                                     )}
                                 </div>
-                                {/* <div className="relative">
-                                    <h3 onClick={() => setSize(!size)} className="flex flex-row justify-between items-center text-md gap-3 border p-2 rounded-md md:w-24 w-40 border-[#1E7773] "><p>Size</p><p>{size ? <PiCaretUpThin /> : <PiCaretDownThin />}</p></h3>
-                                    {size && (
-                                        <div className="md:w-24 w-40  rounded-md my-2 h-32 absolute z-10 overflow-auto bg-white">ssd</div>
-                                    )}
-                                </div> */}
-
-
-                                {/* <div className="relative">
-                                    <h3 onClick={() => setColors(!colors)} className="flex flex-row justify-between items-center text-md gap-3 border p-2 rounded-md w-40 border-[#1E7773] "><p>Colors Option</p><p>{colors ? <PiCaretUpThin /> : <PiCaretDownThin />}</p></h3>
-                                    {colors && (
-                                        <div className="w-40  rounded-md my-2 h-32 absolute z-10 overflow-auto bg-white">ssd</div>
-                                    )}
-                                </div> */}
                                 <div className="relative">
                                     {/* Dropdown button for pack size */}
                                     <h3
@@ -442,7 +534,8 @@ export default function CustomDetails() {
                                         }}
                                     >+</button>
                                 </div>
-                                <button className='p-2 pt-3 bg-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md' onClick={() => handleAddCart(productDetail.product?.id)}>
+                                <button className='p-2 pt-3 bg-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'
+                                    onClick={() => handleAddCart(productDetail.product)}>
                                     ADD TO CART
                                 </button>
                             </div>
@@ -459,14 +552,14 @@ export default function CustomDetails() {
                         </div>
 
                         <div className="flex flex-row md:gap-5 gap-2">
-                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar text-xs' onClick={() => handleWishlist(productVariants[0].id)}>ADD TO WISHLIST</button>
-                            <button className='p-3 border flex flex-row justify-between items-center gap-2  border-[#1E7773] w32 lg:text-[15px]  font-bazaar text-xs rounded-md' onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=${inquiryMessage}`, '_blank')}><FaWhatsapp className='text-[#1E7773] text-2xl' /> <p className="pt-2">ORDER ON WHATSAPP</p></button>
+                            <button className='p-2 pt-3 border-b-4 border-[#1E7773] w-32 lg:text-[15px] font-bazaar cursor-pointer text-xs' onClick={() => handleWishlist(productDetail.product?.id)}>ADD TO WISHLIST</button>
+                            <button className='p-3 border flex flex-row justify-between items-center gap-2  border-[#1E7773] w32 lg:text-[15px]  font-bazaar text-xs rounded-md' onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=${inquiryMessage}`, '_blank')}><FaWhatsapp className='text-[#1E7773] text-2xl' /> <p className="pt-2 cursor-pointer">ORDER ON WHATSAPP</p></button>
                         </div>
                         {/* <button className='p-3 pt-3 bg-[#1E7773] w-52 lg:text-[15px] font-bazaar text-xs rounded-md'>CUSTOMIZED PRINTING</button> */}
                     </div>
                 </section>
                 {/* Product Description and Additional Information */}
-                <section className='flex flex-col gap-8 md:py-20 py-5'>
+                <section className='flex flex-col gap-8 md:py-20 py-5 cursor-pointer'>
                     <div className="flex flexrow w-full border-b border-[#1E7773] justify-center items-center">
                         <div className="flex flex-row justify-center md:gap-5 gap-2 items-center">
                             <h3 onClick={() => setProductTextDetail('Description')} className={`font-bazaar py-2 ${productTextDetail === 'Description' ? ' border-b-2 border-[#1E7773]' : 'text-[#55555F]'} md:text-xl text-xs`}>Product Description </h3>
@@ -532,14 +625,14 @@ export default function CustomDetails() {
                 ) : (
                     <>
 
-                        <RcmdProduct products={recomendedProducts} />
+                        {/* <RcmdProduct products={recomendedProducts} /> */}
                     </>
                 )}
 
                 <div className="relative z-10">
                     {/* <Deals /> */}
                 </div>
-                <Review />
+                {/* <Review /> */}
             </main>
             {/* Background Image */}
             <img
@@ -561,7 +654,7 @@ export default function CustomDetails() {
                 alt="bgGradient"
             /> */}
             {isCartModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center  z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
+                <div className="fixed inset-0 flex items-center justify-center z-50 text-black" onClick={() => setIsCartModalOpen(false)}>
                     <div className="fixed md:top-36 md:right-4 bg-white shadow-lg p-4 rounded-lg z-50 w-[300px] transition-transform duration-500">
                         <div className='flex justify-between  text-black'>
                             <h4 className="text-md font-bold">Added to Cart</h4>
@@ -569,18 +662,17 @@ export default function CustomDetails() {
                         </div>
                         <CartModal />
                         <div className="flex flex-row gap-2 mt-2">
-                            <Link to='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
+                            <Link href='/shop/' className='p-1 flex justify-center items-center pt-2 border text-[#1E7773] border-[#1E7773] w-full lg:text-[15px] font-bazaar text-xs rounded-md'>
                                 CONTINUE
                             </Link>
-                            <Link to='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
+                            <Link href='/cart/' className='p-1 flex justify-center items-center pt-2 bg-[#1E7773] w-full lg:text-[15px] text-white font-bazaar text-xs rounded-md'>
                                 CART
                             </Link>
                         </div>
                     </div>
                 </div>
             )}
+
         </div>
     )
 }
-
-
