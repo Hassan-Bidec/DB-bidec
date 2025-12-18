@@ -1,4 +1,3 @@
-// export const dynamic = "force-dynamic";
 
 
 // 🟩 Dynamic Metadata Function for Blog Page
@@ -32,13 +31,12 @@ export async function generateMetadata() {
 
 
 
-import { Suspense } from "react";
-import Blog from "../../app/src/Pages/Blog";
+import Blog from "../src/Pages/Blog";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    // <Suspense fallback={<div>Loading...</div>}>
       <Blog />
-    </Suspense>
+    // </Suspense>
   );
 }
