@@ -43,7 +43,7 @@ function ContactUs() {
         setStatus('');
 
         try {
-            // Replace 'YOUR_API_URL' with the actual API endpoint
+            // Replace 'YOUR_API_URL'  API endpoint
             const response = await axios.public.post('contact_add', formData);
 
             if (response.status === 200) {
@@ -60,9 +60,9 @@ function ContactUs() {
     return (
         <div className="relative py-10 flex flex-col justify-center items-center text-white overflow-hidden">
             <CustomSeo id={9} />
-            <CustomHeroSection heading='Contact Us' path='Contact Us '  bgImage="CustomHeroAssets/banners.png" />
-           
-               {/* <div className="flex justify-start items-center text-black relative min-h-[450px]" style={{
+            <CustomHeroSection heading='Contact Us' path='Contact Us ' bgImage="CustomHeroAssets/banners.png" />
+
+            {/* <div className="flex justify-start items-center text-black relative min-h-[450px]" style={{
                            background: `url('${Image_Url}CustomHeroAssets/banners.png')`,
                            backgroundSize: 'cover',
                            backgroundPosition: 'center',
@@ -136,21 +136,21 @@ function ContactUs() {
                     <div className='flex flex-col md:flex-row m-0'>
                         <div className="m-4 md:w-1/2">
                             <label className="block text-xl mb-2">First Name</label>
-             <input
-    type="text"
-    name="first_name"
-    value={formData.first_name}
-    className="mt-1 block w-full p-2 text-white text-lg border border-gray-300 rounded-lg bg-transparent"
-    placeholder='Enter Your Name'
-    onChange={(e) => {
-        const value = e.target.value;
-        // Allow only A–Z and space
-        if (/^[A-Za-z ]*$/.test(value)) {
-            setFormData({ ...formData, first_name: value });
-        }
-    }}
-    required
-/>
+                            <input
+                                type="text"
+                                name="first_name"
+                                value={formData.first_name}
+                                className="mt-1 block w-full p-2 text-white text-lg border border-gray-300 rounded-lg bg-transparent"
+                                placeholder='Enter Your Name'
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Allow only A–Z and space
+                                    if (/^[A-Za-z ]*$/.test(value)) {
+                                        setFormData({ ...formData, first_name: value });
+                                    }
+                                }}
+                                required
+                            />
 
                         </div>
 
@@ -183,15 +183,15 @@ function ContactUs() {
 
                     <div className="m-4">
                         <label className="block text-xl mb-2">Message</label>
-                      <textarea
-    name="message"
-    value={formData.message}
-   onChange={handleChange}
-    className="mt-1 block w-full p-2 text-white text-lg border border-gray-300 rounded-lg bg-transparent"
-    rows="5"
-    placeholder='Write a message'
-    required
-></textarea>
+                        <textarea
+                            name="message"
+                            value={formData.message}
+                            onChange={handleChange}
+                            className="mt-1 block w-full p-2 text-white text-lg border border-gray-300 rounded-lg bg-transparent"
+                            rows="5"
+                            placeholder='Write a message'
+                            required
+                        ></textarea>
 
                     </div>
 
